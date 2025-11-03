@@ -1,0 +1,31 @@
+mkdir -p gestor-prioridade
+cd gestor-prioridade
+
+mkdir -p backend/src/{config,models,services,controllers,routes,middlewares}
+mkdir -p backend/tests/{unit,integration,fixtures}
+mkdir -p frontend/{public,src/{components,services}}
+mkdir -p tests-e2e/{tests,pages}
+mkdir -p docs/features
+
+touch .gitignore README.md docker-compose.yml
+touch backend/{.env.example,.dockerignore,Dockerfile,package.json,jest.config.js}
+touch backend/src/app.js
+touch backend/src/config/{database.js,migrate.js}
+touch backend/src/models/Ticket.js
+touch backend/src/services/UrgenciaService.js
+touch backend/src/controllers/TicketController.js
+touch backend/src/routes/tickets.js
+touch backend/src/middlewares/errorHandler.js
+touch backend/tests/unit/UrgenciaService.test.js
+touch backend/tests/integration/tickets.test.js
+touch backend/tests/fixtures/test_cases.json
+touch frontend/{.dockerignore,Dockerfile,package.json}
+touch frontend/public/{index.html,favicon.ico}
+touch frontend/src/{index.js,App.jsx}
+touch frontend/src/components/{TicketForm.jsx,FilaPendente.jsx,FilaClassificada.jsx}
+touch frontend/src/services/api.js
+touch tests-e2e/{package.json,playwright.config.js}
+touch tests-e2e/tests/{criar-ticket.spec.js,processar-fila.spec.js,validacao-urgencia.spec.js}
+touch tests-e2e/pages/GestorPage.js
+touch docs/{PLANO_DE_TESTES.md,BUGS_ENCONTRADOS.md,REQUISITOS_NAO_ATENDIDOS.md}
+touch docs/features/{criar-ticket.feature,processar-fila.feature,calcular-urgencia.feature}
