@@ -1,0 +1,131 @@
+# language: pt
+
+Funcionalidade: Calcular urgência de tickets
+  Como sistema de triagem
+  Quero calcular automaticamente a urgência dos tickets
+  Para priorizar o atendimento baseado em SLA
+
+  Contexto:
+    Dado que o sistema de cálculo de urgência está ativo
+    E existem as seguintes palavras-chave configuradas:
+      | Nível   | Palavras                                                     |
+      | Crítico | parado, offline, não funciona, down, fora do ar             |
+      | Alto    | erro, bug, lento, lentidão, falha de acesso                 |
+      | Médio   | dúvida, como fazer, ajuda, orientação                       |
+
+  Cenário: Cliente Premium com palavra crítica recebe urgência CRÍTICA
+    Dado que existe um ticket com as seguintes informações:
+      | Campo        | Valor                                |
+      | titulo       | Sistema fora do ar                   |
+      | descricao    | O sistema está completamente parado  |
+      | tipo_cliente | PREMIUM                              |
+    Quando o sistema processa o cálculo de urgência
+    Então a urgência calculada deve ser "CRITICA"
+    E o status do ticket deve ser "CLASSIFICADO"
+
+  Cenário: Cliente Básico com palavra crítica recebe urgência ALTA
+    Dado que existe um ticket com as seguintes informações:
+      | Campo        | Valor                    |
+      | titulo       | Servidor inoperante      |
+      | descricao    | Servidor está parado     |
+      | tipo_cliente | BASICO                   |
+    Quando o sistema processa o cálculo de urgência
+    Então a urgência calculada deve ser "ALTA"
+    E o status do ticket deve ser "CLASSIFICADO"
+
+  Cenário: Cliente Gratuito com palavra alta recebe urgência BAIXA
+    Dado que existe um ticket com as seguintes informações:
+      | Campo        | Valor                    |
+      | titulo       | Performance ruim         |
+      | descricao    | Sistema muito lento      |
+      | tipo_cliente | GRATUITO                 |
+    Quando o sistema processa o cálculo de urgência
+    Então a urgência calculada deve ser "BAIXA"
+    E o status do ticket deve ser "CLASSIFICADO"
+
+  Cenário: Múltiplas palavras-chave - prevalece a de maior impacto
+    Dado que existe um ticket com as seguintes informações:
+      | Campo        | Valor                                              |
+      | titulo       | Múltiplos problemas                                |
+      | descricao    | Tenho dúvida sobre o sistema que não funciona      |
+      | tipo_cliente | PREMIUM                                            |
+    Quando o sistema processa o cálculo de urgência
+    Então a urgência calculada deve ser "CRITICA"
+    E a palavra "não funciona" deve ter prevalecido sobre "dúvida"
+    E o status do ticket deve ser "CLASSIFICADO"
+
+  Cenário: Cliente Básico sem palavras-chave recebe urgência BAIXA
+    Dado que existe um ticket com as seguintes informações:
+      | Campo        | Valor                                      |
+      | titulo       | Solicitação geral                          |
+      | descricao    | Gostaria de informações sobre o produto    |
+      | tipo_cliente | BASICO                                     |
+    Quando o sistema processa o cálculo de urgência
+    Então a urgência calculada deve ser "BAIXA"
+    E o status do ticket deve ser "CLASSIFICADO"
+
+  Cenário: Detecção case-insensitive de palavras-chave
+    Dado que existe um ticket com as seguintes informações:
+      | Campo        | Valor                                |
+      | titulo       | Preciso de suporte                   |
+      | descricao    | Preciso de AJUDA para configurar     |
+      | tipo_cliente | PREMIUM                              |
+    Quando o sistema processa o cálculo de urgência
+    Então a urgência calculada deve ser "MEDIA"
+    E a palavra "AJUDA" deve ter sido detectada corretamente
+    E o status do ticket deve ser "CLASSIFICADO"
+
+  Esquema do Cenário: Matriz completa de decisão de urgência
+    Dado que existe um ticket do tipo "<tipo_cliente>"
+    E a descrição contém palavra de nível "<nivel_impacto>"
+    Quando o sistema processa o cálculo de urgência
+    Então a urgência calculada deve ser "<urgencia_esperada>"
+
+    Exemplos:
+      | tipo_cliente | nivel_impacto | urgencia_esperada |
+      | PREMIUM      | Crítico       | CRITICA          |
+      | PREMIUM      | Alto          | ALTA             |
+      | PREMIUM      | Médio         | MEDIA            |
+      | PREMIUM      | Nenhum        | MEDIA            |
+      | BASICO       | Crítico       | ALTA             |
+      | BASICO       | Alto          | MEDIA            |
+      | BASICO       | Médio         | BAIXA            |
+      | BASICO       | Nenhum        | BAIXA            |
+      | GRATUITO     | Crítico       | MEDIA            |
+      | GRATUITO     | Alto          | BAIXA            |
+      | GRATUITO     | Médio         | BAIXA            |
+      | GRATUITO     | Nenhum        | BAIXA            |
+
+  Cenário: Processamento em lote de múltiplos tickets
+    Dado que existem os seguintes tickets pendentes:
+      | titulo          | descricao                  | tipo_cliente |
+      | Sistema parado  | Tudo está parado           | PREMIUM      |
+      | Erro no login   | Sistema apresenta erro     | BASICO       |
+      | Dúvida geral    | Como fazer cadastro        | GRATUITO     |
+    Quando o sistema processa a fila de tickets
+    Então todos os tickets devem ser classificados
+    E as urgências devem ser:
+      | titulo          | urgencia |
+      | Sistema parado  | CRITICA  |
+      | Erro no login   | MEDIA    |
+      | Dúvida geral    | BAIXA    |
+
+  Cenário: Ticket com descrição vazia
+    Dado que existe um ticket com as seguintes informações:
+      | Campo        | Valor    |
+      | titulo       | Teste    |
+      | descricao    |          |
+      | tipo_cliente | BASICO   |
+    Quando o sistema processa o cálculo de urgência
+    Então a urgência calculada deve ser "BAIXA"
+    E nenhuma palavra-chave deve ser detectada
+
+  Cenário: Palavra-chave parcial não deve ser detectada
+    Dado que existe um ticket com as seguintes informações:
+      | Campo        | Valor                          |
+      | titulo       | Análise de erros               |
+      | descricao    | Preciso analisar os erros      |
+      | tipo_cliente | PREMIUM                        |
+    Quando o sistema processa o cálculo de urgência
+    Então a urgência calculada deve ser "ALTA"
+    E a palavra "erro" deve ter sido detectada
